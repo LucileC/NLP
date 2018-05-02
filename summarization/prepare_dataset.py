@@ -8,6 +8,10 @@ from torch.autograd import Variable
 from vocab import Vocab
 from mytokenize import *
 
+from constants import *
+
+
+vocab = Vocab()
 
 def loadDataset(path,limit=100000000000):
 	print("Loading dataset...")
@@ -34,8 +38,6 @@ def randomExamples(dataset):
 
 
 def tokenizeDataset(dataset):
-
-	vocab = Vocab()
 
 	tokenized_dataset = list()
 	len_dataset = len(dataset)

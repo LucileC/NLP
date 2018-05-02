@@ -1,6 +1,7 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
+from torch.autograd import Variable
 import time, math
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
