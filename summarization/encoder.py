@@ -2,6 +2,7 @@ import torch
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
+
 import prepare_dataset as prep
 from constants import *
 
@@ -28,8 +29,9 @@ class EncoderLSTM(nn.Module):
         return hidden
 
 def test():
-    input_var, _ = prep.test()
+    input_var, _ = prep.test(path_dev)
     encoder = EncoderLSTM()
+    encoder.to(DEVICE)
     input_length = len(input_var)
     encoder_hidden = encoder.initHidden()        
     h = Variable(torch.zeros(input_length, encoder.hidden_size*2))        

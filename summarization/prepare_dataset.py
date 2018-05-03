@@ -10,9 +10,10 @@ from mytokenize import *
 
 from constants import *
 import save_as_pickle
+from helper_functions import *
 
 
-def createVocabObj(mode):
+def createVocabObj(mode=None):
 	if mode == 'prep':
 		vocab = Vocab() 
 	else:
@@ -93,21 +94,34 @@ def variablesFromPair(pair,vocab):
 	target_var = variableFromSentence(pair[1],vocab)
 	return input_var, target_var
 
-def test():
-	path_dev = "data/msmarco_2wellformed/dev_v2.0_well_formed.json"
-	dataset_train_tokenized = tokenizeDataset(dataset_train)
-	dataset_dev = loadDataset(path_dev)
-	dataset_train_tokenized = tokenizeDataset(dataset_train)
-	example = random.choice(dataset_train_tokenized)
+def testTokenizeVsLoadingTime(dataset,name,vocab):
+	s1 = time.time()
+	dataset_tokenized = tokenizeDataset(dataset,vocab)
+	print('It took %s to tokenize the dataset'% timeSince(s1))
+	s2 = time.time()
+	dataset_tokenized2 = save_as_pickle.load_obj(name)
+	print('It took %s to load the tokenized dataset'% timeSince(s2))
+
+def test(path):
+	# dataset_train_tokenized = tokenizeDataset(dataset_train)
+	vocab = createVocabObj()
+	dataset_dev = loadDataset(path)
+	dataset_dev_tokenized = tokenizeDataset(dataset_dev,vocab,buildvocab=True)
+
+	example = random.choice(dataset_dev_tokenized)
 	# print(example['passages'])
 	input_var = [item for sublist in example['passages'] for item in sublist]
 	input_var = list(input_var[:400])
-	input_var = variableFromSentence(input_var)
+	input_var = variableFromSentence(input_var,vocab)
+	input_var = input_var.to(DEVICE)
 	print(input_var.size())
 	target_var = example['wellFormedAnswers'][0]
-	target_var = variableFromSentence(target_var)
+	target_var = variableFromSentence(target_var,vocab)
+	target_var = target_var.to(DEVICE)
 	print(target_var.size())
 	return input_var, target_var
 
 if __name__ == "__main__": 
-	test()
+	path = path_train
+	# testTokenizeVsLoadingTime(loadDataset(path),'dataset_train_tokenized',createVocabObj())
+	test(path)

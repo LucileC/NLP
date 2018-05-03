@@ -1,3 +1,5 @@
+#https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html --> GPU training
+
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -14,6 +16,7 @@ from encoder import EncoderLSTM
 from decoder import AttnDecoderLSTM
 from constants import *
 import save_as_pickle
+from helper_functions import *
 
 
 ####################################################################################
@@ -56,13 +59,6 @@ def load_dataset():
 ####################################################################################
 ##		Define training step	 												  ##
 ####################################################################################
-
-def timeSince(since):
-	now = time.time()
-	s = now - since
-	m = math.floor(s/60)
-	s -= m*60
-	return '%dm %ds' %(m,s)
 
 def trainingStep(input_var, target_var, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length=MAX_LENGTH, debug=False):
 
@@ -137,8 +133,10 @@ def trainIters(dataset_tokenized, encoder, decoder, n_iters, print_every=1000, p
 		input_variable = [item for sublist in example['passages'] for item in sublist]
 		input_variable = list(input_variable[:400])
 		input_variable = prep.variableFromSentence(input_variable,vocab)
+		input_variable = input_variable.to(DEVICE)
 		target_variable = example['wellFormedAnswers'][0]
 		target_variable = prep.variableFromSentence(target_variable,vocab)
+		target_variable = target_variable.to(DEVICE)
 
 		loss = trainingStep(input_variable, target_variable, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion)
 		print_loss_total += loss
@@ -162,9 +160,16 @@ def trainIters(dataset_tokenized, encoder, decoder, n_iters, print_every=1000, p
 
 def train(dataset):
 	encoder1 = EncoderLSTM()
+	encoder1.to(DEVICE)
 	attn_decoder1 = AttnDecoderLSTM()
+	attb.decoder.to(DEVICE)
 	all_losses = trainIters(dataset, encoder1, attn_decoder1, 7500, learning_rate=0.001, print_every=50, plot_every = 1)
 
+
+
+####################################################################################
+##		Main 					 												  ##
+####################################################################################
 
 if __name__ == "__main__": 
 	parser = argparse.ArgumentParser(description='Mode: what do you want to do? Mode can be prep (prepare dataset) or train.')
