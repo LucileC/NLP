@@ -7,24 +7,52 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 import random
+import argparse
 
 import prepare_dataset as prep
 from encoder import EncoderLSTM
 from decoder import AttnDecoderLSTM
 from constants import *
-
+import save_as_pickle
 
 
 ####################################################################################
 ##		Prepare Dataset															  ##
 ####################################################################################
 
-dataset_dev = prep.loadDataset(path_dev)
-dataset_train = prep.loadDataset(path_train)
-dataset_eval = prep.loadDataset(path_eval)
+def prepare_dataset():
 
-dataset_train_tokenized = prep.tokenizeDataset(dataset_train)
+	dataset_train = prep.loadDataset(path_train)
+	dataset_train_tokenized = prep.tokenizeDataset(dataset_train,buildvocab=True)
+	save_as_pickle.save_obj(dataset_train_tokenized,'dataset_train_tokenized') 
 
+	dataset_dev = prep.loadDataset(path_dev)
+	dataset_dev_tokenized = prep.tokenizeDataset(dataset_dev)
+	save_as_pickle.save_obj(dataset_dev_tokenized,'dataset_dev_tokenized') 
+
+	dataset_eval = prep.loadDataset(path_eval)
+	# dataset_eval_tokenized = prep.tokenizeDataset(dataset_eval)
+	dataset_eval_tokenized = None
+	save_as_pickle.save_obj(dataset_eval_tokenized,'dataset_eval_tokenized') 
+	
+	save_as_pickle.save_obj(prep.vocab,'vocab')
+
+####################################################################################
+##		Load Dataset															  ##
+####################################################################################
+
+def load_dataset():
+
+	dataset_dev = prep.loadDataset(path_dev)
+	dataset_train = prep.loadDataset(path_train)
+	dataset_eval = prep.loadDataset(path_eval)
+
+	dataset_train_tokenized = save_as_pickle.load_obj('dataset_train_tokenized')
+	dataset_dev_tokenized = save_as_pickle.load_obj('dataset_dev_tokenized')
+	dataset_eval_tokenized = save_as_pickle.load_obj('dataset_eval_tokenized')
+	vocab = save_as_pickle.load_obj('dataset_eval_tokenized')
+
+	return dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized, vocab
 
 ####################################################################################
 ##		Define training step	 												  ##
@@ -102,7 +130,10 @@ def trainIters(dataset_tokenized, encoder, decoder, n_iters, print_every=1000, p
 	training = [random.choice(dataset_tokenized) for i in range(n_iters)]
 	criterion = nn.NLLLoss()
 
+	print('\nStarting traning, will print every %d iterations'%print_every)
+
 	for iter in range(1, n_iters + 1):
+		print(iter)
 		example = training[iter]
 		input_variable = [item for sublist in example['passages'] for item in sublist]
 		input_variable = list(input_variable[:400])
@@ -137,4 +168,14 @@ def train(dataset):
 
 
 if __name__ == "__main__": 
-	train(dataset_train_tokenized)
+	parser = argparse.ArgumentParser(description='Mode: what do you want to do? Mode can be prep (prepare dataset) or train.')
+	parser.add_argument('mode', metavar='mode', type=str, nargs = '?', default='train', help='Mode can be prep (prepare dataset) or train.')
+	args = parser.parse_args()
+
+	if args.mode == 'train':
+		dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized, vocab = load_dataset()
+		train(dataset_train_tokenized)
+	elif args.mode == 'prep':
+		prepare_dataset()
+	else:
+		print('Not a valide mode!')

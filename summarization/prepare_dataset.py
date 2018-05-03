@@ -14,7 +14,7 @@ from constants import *
 vocab = Vocab()
 
 def loadDataset(path,limit=100000000000):
-	print("Loading dataset...")
+	print("Loading dataset from %s..."%path)
 	dataset = list()
 	i = 0
 	for line in open(path, 'r'):
@@ -37,7 +37,7 @@ def randomExamples(dataset):
 		print(x['wellFormedAnswers'][0])
 
 
-def tokenizeDataset(dataset):
+def tokenizeDataset(dataset,buildvocab=False):
 
 	tokenized_dataset = list()
 	len_dataset = len(dataset)
@@ -51,22 +51,26 @@ def tokenizeDataset(dataset):
 		for answer in data['answers']:
 			t = tokenizeSentence(answer)
 			tokenized_data['answers'].append(t)
-			vocab.addSentence(t)
+			if buildvocab:
+				vocab.addSentence(t)
 		for wf_answer in data['wellFormedAnswers']:
 			t = tokenizeSentence(wf_answer)
 			tokenized_data['wellFormedAnswers'].append(t)
-			vocab.addSentence(t)
+			if buildvocab:
+				vocab.addSentence(t)
 		for passage in data['passages']:
 			t = tokenizeSentence(passage['passage_text'])
 			tokenized_data['passages'].append(t)
-			vocab.addSentence(t)
+			if buildvocab:
+				vocab.addSentence(t)
 		if i>0 and i%print_every == 0:
 			print('... %d%%\r'%(i/print_every*10))
 		tokenized_dataset.append(tokenized_data)
 
 	print('Number of different words: %d'%len(vocab.word2count))
 
-	vocab.buildVocabulary()
+	if buildvocab:
+		vocab.buildVocabulary()
 
 	return tokenized_dataset
 
