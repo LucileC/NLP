@@ -9,9 +9,15 @@ from vocab import Vocab
 from mytokenize import *
 
 from constants import *
+import save_as_pickle
 
 
-vocab = Vocab()
+def createVocabObj(mode):
+	if mode == 'prep':
+		vocab = Vocab() 
+	else:
+		vocab = save_as_pickle.load_obj('vocab')
+	return vocab
 
 def loadDataset(path,limit=100000000000):
 	print("Loading dataset from %s..."%path)
@@ -37,7 +43,7 @@ def randomExamples(dataset):
 		print(x['wellFormedAnswers'][0])
 
 
-def tokenizeDataset(dataset,buildvocab=False):
+def tokenizeDataset(dataset,vocab,buildvocab=False):
 
 	tokenized_dataset = list()
 	len_dataset = len(dataset)
@@ -74,17 +80,17 @@ def tokenizeDataset(dataset,buildvocab=False):
 
 	return tokenized_dataset
 
-def indexesFromSentence(sentence): # sentence is a list of tokens
+def indexesFromSentence(sentence,vocab): # sentence is a list of tokens
 	return [vocab.word2index[word] for word in sentence]
 
-def variableFromSentence(sentence):
-	indexes = indexesFromSentence(sentence)
+def variableFromSentence(sentence,vocab):
+	indexes = indexesFromSentence(sentence,vocab)
 	indexes.append(EOS_token)
 	return Variable(torch.LongTensor(indexes).view(-1,1))
 
-def variablesFromPair(pair):
-	input_var = variableFromSentence(pair[0])
-	target_var = variableFromSentence(pair[1])
+def variablesFromPair(pair,vocab):
+	input_var = variableFromSentence(pair[0],vocab)
+	target_var = variableFromSentence(pair[1],vocab)
 	return input_var, target_var
 
 def test():

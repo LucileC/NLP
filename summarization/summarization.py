@@ -23,7 +23,7 @@ import save_as_pickle
 def prepare_dataset():
 
 	dataset_train = prep.loadDataset(path_train)
-	dataset_train_tokenized = prep.tokenizeDataset(dataset_train,buildvocab=True)
+	dataset_train_tokenized = prep.tokenizeDataset(dataset_train,vocab,buildvocab=True)
 	save_as_pickle.save_obj(dataset_train_tokenized,'dataset_train_tokenized') 
 
 	dataset_dev = prep.loadDataset(path_dev)
@@ -34,7 +34,7 @@ def prepare_dataset():
 	# dataset_eval_tokenized = prep.tokenizeDataset(dataset_eval)
 	dataset_eval_tokenized = None
 	save_as_pickle.save_obj(dataset_eval_tokenized,'dataset_eval_tokenized') 
-	
+
 	save_as_pickle.save_obj(prep.vocab,'vocab')
 
 ####################################################################################
@@ -50,9 +50,8 @@ def load_dataset():
 	dataset_train_tokenized = save_as_pickle.load_obj('dataset_train_tokenized')
 	dataset_dev_tokenized = save_as_pickle.load_obj('dataset_dev_tokenized')
 	dataset_eval_tokenized = save_as_pickle.load_obj('dataset_eval_tokenized')
-	vocab = save_as_pickle.load_obj('dataset_eval_tokenized')
 
-	return dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized, vocab
+	return dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized
 
 ####################################################################################
 ##		Define training step	 												  ##
@@ -133,30 +132,30 @@ def trainIters(dataset_tokenized, encoder, decoder, n_iters, print_every=1000, p
 	print('\nStarting traning, will print every %d iterations'%print_every)
 
 	for iter in range(1, n_iters + 1):
-		print(iter)
+		# print(iter)
 		example = training[iter]
 		input_variable = [item for sublist in example['passages'] for item in sublist]
 		input_variable = list(input_variable[:400])
-		input_variable = prep.variableFromSentence(input_variable)
+		input_variable = prep.variableFromSentence(input_variable,vocab)
 		target_variable = example['wellFormedAnswers'][0]
-		target_variable = prep.variableFromSentence(target_variable)
+		target_variable = prep.variableFromSentence(target_variable,vocab)
 
 		loss = trainingStep(input_variable, target_variable, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion)
 		print_loss_total += loss
 		plot_loss_total += loss
 
 
-	if iter % print_every == 0:
-		print(example['wellFormedAnswers'][0])
-		print_loss_avg = print_loss_total / print_every
-		print_loss_total = 0
-		print('%s (%d %d%%) %.4f' % (timeSince(start),
-	                             iter, iter / n_iters * 100, print_loss_avg))
+		if iter % print_every == 0:
+			print(example['wellFormedAnswers'][0])
+			print_loss_avg = print_loss_total / print_every
+			print_loss_total = 0
+			print('%s (%d %d%%) %.4f' % (timeSince(start),
+		                             iter, iter / n_iters * 100, print_loss_avg))
 
-	if iter % plot_every == 0:
-		plot_loss_avg = plot_loss_total / plot_every
-		plot_losses.append(plot_loss_avg)
-		plot_loss_total = 0
+		if iter % plot_every == 0:
+			plot_loss_avg = plot_loss_total / plot_every
+			plot_losses.append(plot_loss_avg)
+			plot_loss_total = 0
 
 	showPlot(plot_losses)
 
@@ -172,8 +171,10 @@ if __name__ == "__main__":
 	parser.add_argument('mode', metavar='mode', type=str, nargs = '?', default='train', help='Mode can be prep (prepare dataset) or train.')
 	args = parser.parse_args()
 
+	vocab = prep.createVocabObj(args.mode)
+
 	if args.mode == 'train':
-		dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized, vocab = load_dataset()
+		dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized = load_dataset()
 		train(dataset_train_tokenized)
 	elif args.mode == 'prep':
 		prepare_dataset()
