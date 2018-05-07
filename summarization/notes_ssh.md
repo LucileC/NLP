@@ -14,3 +14,8 @@ https://stackoverflow.com/questions/37458814/how-to-open-remote-files-in-sublime
 https://wrgms.com/editing-files-remotely-via-ssh-on-sublimetext-3/
 https://stackoverflow.com/questions/18938950/rsub-with-sublime-and-ssh-connection-refusual
 https://gist.github.com/Ninjex/9582357
+
+## Choose which GPU you want to use
+
+With `nvidia-smi`, check which one is available, then use the command:
+`CUDA_VISIBLE_DEVICES=num python mina.py`
