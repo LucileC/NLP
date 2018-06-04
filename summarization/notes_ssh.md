@@ -7,7 +7,7 @@
 
 https://unix.stackexchange.com/questions/106480/how-to-copy-files-from-one-machine-to-another-using-ssh
 
-scp username@b:/path/to/file /path/to/destination
+`scp -P 2002 eng-fra.txt lcallebe@bigfoot.apt.ri.cmu.edu:/home/lcallebe/DEV/NLPvirtualenv/NLP/translation/data`
 
 ## Open files from distant machine on local machine
 
