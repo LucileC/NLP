@@ -26,7 +26,7 @@ class EncoderLSTM(nn.Module):
         # return torch.zeros(1, 1, self.hidden_size, device=DEVICE)
 
     def forward(self, input, hidden):
-        #         print(input)
+        # print(input)
         embedded = self.embedding(input).view(1,1,-1)
         # print('hidden')
         # print(hidden.size())
@@ -34,9 +34,11 @@ class EncoderLSTM(nn.Module):
         return output, hidden
 
 
-def test(encoder=EncoderLSTM()):
-    input_var, _ = prep.test(path_dev,verbose=False)
-    # encoder = EncoderLSTM()
+def test(input_target_pair):
+    print('Test encoder')
+    # input_var, _ = prep.test(path_dev,verbose=False)
+    input_var, target_var = input_target_pair
+    encoder = EncoderLSTM()
     encoder.to(DEVICE)
     input_length = len(input_var)
     encoder_hidden = encoder.initHidden()        
@@ -44,10 +46,9 @@ def test(encoder=EncoderLSTM()):
     for ei in range(input_length):
         encoder_output, encoder_hidden = encoder(input_var[ei],encoder_hidden)
         h[ei] = torch.cat((encoder_hidden[0][0][0],encoder_hidden[1][0][0]),0)
-    print(input_var.size())
-    print(h.size())
     return h
 
 
 if __name__ == "__main__": 
-    test()
+    input_target_pair = prep.test(path_dev,verbose=False)
+    test(input_target_pair)

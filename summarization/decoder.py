@@ -2,6 +2,7 @@ import torch
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy
 
 import prepare_dataset as prep
 import encoder
@@ -39,16 +40,21 @@ class AttnDecoderLSTM(nn.Module):
     def forward(self, target_var, h):
         input_length = h.size()[0]
         target_length = len(target_var)
-        hidden = self.initHidden()        
-        outputs = Variable(torch.zeros(target_length, self.hidden_size*2))  
-        s = Variable(torch.zeros(target_length,self.hidden_size*2))
-        input = Variable(torch.LongTensor([[SOS_token]]))    
+        # hidden = self.initHidden()        
+        # outputs = Variable(torch.zeros(target_length, self.hidden_size*2))  
+        # s = Variable(torch.zeros(target_length,self.hidden_size*2))
+        # input = Variable(torch.LongTensor([[SOS_token]]))    
+        outputs = torch.zeros(target_length, self.hidden_size*2)
+        s = torch.zeros(target_length,self.hidden_size*2)
+        input = torch.LongTensor([SOS_token])
+
+        hidden = self.initHidden()
         
         for di in range(target_length):
             output, hidden = self.forward_rec(input, hidden)
             outputs[di] = output[0]
             s[di] = torch.cat((hidden[0][0],hidden[1][0]),1)
-            input = target_var[di]
+            input = target_var[di].cpu()
         
         # attention distribution
         Wh = self.attn_Wh(h) # dim: # of words in input , 256
@@ -73,17 +79,19 @@ class AttnDecoderLSTM(nn.Module):
         
         return Pvocab, outputs    
       
-def test():
-    _, target_var = prep.test(path_dev)
-    h = encoder.test()
+def test(input_target_pair):
+    print('Test decoder')
+    input_var, target_var = input_target_pair
+    h = encoder.test(input_target_pair)
     decoder2 = AttnDecoderLSTM()
     loss = 0
     Pvocab, outputs = decoder2(target_var,h)
     criterion = nn.NLLLoss()
     for i in range(len(outputs)):
-        loss += criterion(Pvocab[i],target_var[i])
+        loss += criterion(Pvocab[i],target_var[i].cpu())
     print (loss/len(target_var))
 
 
 if __name__ == "__main__": 
-    test()
+    input_target_pair = prep.test(path_dev,verbose=False)
+    test(input_target_pair)
