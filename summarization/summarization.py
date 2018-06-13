@@ -23,27 +23,30 @@ from helper_functions import *
 ##		Prepare Dataset															  ##
 ####################################################################################
 
-def prepare_dataset():
+def prepare_dataset(vocab):
 
 	dataset_train = prep.loadDataset(path_train)
 	dataset_train_tokenized = prep.tokenizeDataset(dataset_train,vocab,buildvocab=True)
-	save_as_pickle.save_obj(dataset_train_tokenized,'dataset_train_tokenized') 
+	# save_as_pickle.save_obj(dataset_train_tokenized,'dataset_train_tokenized') 
 
 	dataset_dev = prep.loadDataset(path_dev)
-	dataset_dev_tokenized = prep.tokenizeDataset(dataset_dev)
-	save_as_pickle.save_obj(dataset_dev_tokenized,'dataset_dev_tokenized') 
+	dataset_dev_tokenized = prep.tokenizeDataset(dataset_dev,vocab)
+	# save_as_pickle.save_obj(dataset_dev_tokenized,'dataset_dev_tokenized') 
 
-	dataset_eval = prep.loadDataset(path_eval)
+	dataset_eval = prep.loadDataset(path_eval,vocab)
 	# dataset_eval_tokenized = prep.tokenizeDataset(dataset_eval)
 	dataset_eval_tokenized = None
-	save_as_pickle.save_obj(dataset_eval_tokenized,'dataset_eval_tokenized') 
+	# save_as_pickle.save_obj(dataset_eval_tokenized,'dataset_eval_tokenized') 
 
-	save_as_pickle.save_obj(prep.vocab,'vocab')
+	# save_as_pickle.save_obj(prep.vocab,'vocab')
+
+	return dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized
 
 ####################################################################################
 ##		Load Dataset															  ##
 ####################################################################################
 
+## less fast than retokenizing everythong
 def load_dataset():
 
 	dataset_dev = prep.loadDataset(path_dev)
@@ -162,7 +165,7 @@ def train(dataset):
 	encoder1 = EncoderLSTM()
 	encoder1.to(DEVICE)
 	attn_decoder1 = AttnDecoderLSTM()
-	attb.decoder.to(DEVICE)
+	attn_decoder1.to(DEVICE)
 	all_losses = trainIters(dataset, encoder1, attn_decoder1, 7500, learning_rate=0.001, print_every=50, plot_every = 1)
 
 
@@ -179,7 +182,7 @@ if __name__ == "__main__":
 	vocab = prep.createVocabObj(args.mode)
 
 	if args.mode == 'train':
-		dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized = load_dataset()
+		dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized = prepare_dataset(vocab)
 		train(dataset_train_tokenized)
 	elif args.mode == 'prep':
 		prepare_dataset()

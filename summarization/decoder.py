@@ -74,7 +74,7 @@ class AttnDecoderLSTM(nn.Module):
         return Pvocab, outputs    
       
 def test():
-    _, target_var = prep.test()
+    _, target_var = prep.test(path_dev)
     h = encoder.test()
     decoder2 = AttnDecoderLSTM()
     loss = 0

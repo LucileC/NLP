@@ -84,15 +84,25 @@ def tokenizeDataset(dataset,vocab,buildvocab=False):
 def indexesFromSentence(sentence,vocab): # sentence is a list of tokens
 	return [vocab.word2index[word] for word in sentence]
 
-def variableFromSentence(sentence,vocab):
+# def variableFromSentence(sentence,vocab):
+# 	indexes = indexesFromSentence(sentence,vocab)
+# 	indexes.append(EOS_token)
+# 	return Variable(torch.LongTensor(indexes).view(-1,1))
+
+def tensorFromSentence(sentence,vocab):
 	indexes = indexesFromSentence(sentence,vocab)
 	indexes.append(EOS_token)
-	return Variable(torch.LongTensor(indexes).view(-1,1))
+	return torch.tensor(indexes, dtype=torch.long, device=DEVICE).view(-1,1)
 
-def variablesFromPair(pair,vocab):
-	input_var = variableFromSentence(pair[0],vocab)
-	target_var = variableFromSentence(pair[1],vocab)
-	return input_var, target_var
+# def variablesFromPair(pair,vocab):
+# 	input_var = variableFromSentence(pair[0],vocab)
+# 	target_var = variableFromSentence(pair[1],vocab)
+# 	return input_var, target_var
+
+# def tensorsFromPair(pair,vocab):
+# 	input_var = tensorFromSentence(pair[0],vocab)
+# 	target_var = tensorFromSentence(pair[1],vocab)
+# 	return input_var, target_var
 
 def testTokenizeVsLoadingTime(dataset,name,vocab):
 	s1 = time.time()
@@ -102,7 +112,7 @@ def testTokenizeVsLoadingTime(dataset,name,vocab):
 	dataset_tokenized2 = save_as_pickle.load_obj(name)
 	print('It took %s to load the tokenized dataset'% timeSince(s2))
 
-def test(path):
+def test(path,verbose=False):
 	# dataset_train_tokenized = tokenizeDataset(dataset_train)
 	vocab = createVocabObj()
 	dataset_dev = loadDataset(path)
@@ -112,16 +122,19 @@ def test(path):
 	# print(example['passages'])
 	input_var = [item for sublist in example['passages'] for item in sublist]
 	input_var = list(input_var[:400])
-	input_var = variableFromSentence(input_var,vocab)
-	input_var = input_var.to(DEVICE)
-	print(input_var.size())
+	input_var = tensorFromSentence(input_var,vocab)
+	# input_var = input_var.to(DEVICE)
 	target_var = example['wellFormedAnswers'][0]
-	target_var = variableFromSentence(target_var,vocab)
-	target_var = target_var.to(DEVICE)
-	print(target_var.size())
+	target_var = tensorFromSentence(target_var,vocab)
+	# target_var = target_var.to(DEVICE)
+	if verbose:
+		print('Size input var')
+		print(input_var.size())
+		print('Size target var')
+		print(target_var.size())
 	return input_var, target_var
 
 if __name__ == "__main__": 
 	path = path_train
 	# testTokenizeVsLoadingTime(loadDataset(path),'dataset_train_tokenized',createVocabObj())
-	test(path)
+	test(path,True)

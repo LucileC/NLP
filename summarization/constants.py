@@ -1,8 +1,9 @@
 import torch
 
-EMBEDDING_SIZE = 128
+EMBEDDING_SIZE = 256 # was 128 !!
 HIDDEN_SIZE = 256
-VOC_SIZE = 5000 #vocab.n_words#50000 #for both source and target
+# VOC_SIZE = 500 #vocab.n_words#50000 #for both source and target
+VOC_SIZE = HIDDEN_SIZE
 OUTPUT_SIZE = VOC_SIZE #10 # ?? 
 BASELINE_VOC_SIZE = VOC_SIZE
 MAX_LENGTH = 400

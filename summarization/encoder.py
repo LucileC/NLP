@@ -6,6 +6,7 @@ import torch.nn.functional as F
 import prepare_dataset as prep
 from constants import *
 
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class EncoderLSTM(nn.Module):
 
@@ -20,7 +21,7 @@ class EncoderLSTM(nn.Module):
 
     def initHidden(self):
         return (Variable(torch.zeros(2, 1, self.hidden_size)), # 2 because bidirectional
-        Variable(torch.zeros(2, 1, self.hidden_size)))
+        Variable(torch.zeros(2, 1, self.hidden_size, device=DEVICE)))
 
     def forward(self, input, hidden):
         #         print(input)
@@ -28,9 +29,36 @@ class EncoderLSTM(nn.Module):
         output, hidden = self.bilstm(embedded, hidden)
         return hidden
 
-def test():
-    input_var, _ = prep.test(path_dev)
-    encoder = EncoderLSTM()
+class EncoderRRN(nn.Module):
+    def __init__(self, input_size=EMBEDDING_SIZE, hidden_size=HIDDEN_SIZE): # 128, 256
+        super(EncoderRRN, self).__init__()
+        self.hidden_size = hidden_size
+
+        self.embedding = nn.Embedding(input_size, hidden_size)
+        self.gru = nn.GRU(hidden_size, hidden_size)
+
+    def forward(self, input, hidden):
+        print(input.size())
+        print(input)
+        embedded = self.embedding(input).view(1, 1, -1)
+        output = embedded
+        print('output')
+        print(output.size())
+        print(output)
+        print('hidden')
+        print(hidden.size())
+        print(hidden)
+        output, hidden = self.gru(output, hidden)
+        return output, hidden
+
+    def initHidden(self):
+        return torch.zeros(1, 1, self.hidden_size, device=DEVICE)
+
+def test(encoder=EncoderLSTM()):
+    input_var, _ = prep.test(path_dev,verbose=True)
+    print('input_var')
+    print(input_var.size())
+    # encoder = EncoderLSTM()
     encoder.to(DEVICE)
     input_length = len(input_var)
     encoder_hidden = encoder.initHidden()        
@@ -44,4 +72,4 @@ def test():
 
 
 if __name__ == "__main__": 
-    test()
+    test(EncoderRRN())
