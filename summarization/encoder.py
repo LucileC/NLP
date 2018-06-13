@@ -20,56 +20,34 @@ class EncoderLSTM(nn.Module):
         self.bilstm = nn.LSTM(embedding_size, hidden_size, num_layers =1, bidirectional=True)
 
     def initHidden(self):
-        return (Variable(torch.zeros(2, 1, self.hidden_size)), # 2 because bidirectional
-        Variable(torch.zeros(2, 1, self.hidden_size, device=DEVICE)))
+        # return (Variable(torch.zeros(2, 1, self.hidden_size)), # 2 because bidirectional
+        # return torch.zeros(2, 2, 1, self.hidden_size, device=DEVICE)
+        return (torch.zeros(2, 1, self.hidden_size, device=DEVICE), torch.zeros(2, 1, self.hidden_size, device=DEVICE))
+        # return torch.zeros(1, 1, self.hidden_size, device=DEVICE)
 
     def forward(self, input, hidden):
         #         print(input)
         embedded = self.embedding(input).view(1,1,-1)
+        # print('hidden')
+        # print(hidden.size())
         output, hidden = self.bilstm(embedded, hidden)
-        return hidden
-
-class EncoderRRN(nn.Module):
-    def __init__(self, input_size=EMBEDDING_SIZE, hidden_size=HIDDEN_SIZE): # 128, 256
-        super(EncoderRRN, self).__init__()
-        self.hidden_size = hidden_size
-
-        self.embedding = nn.Embedding(input_size, hidden_size)
-        self.gru = nn.GRU(hidden_size, hidden_size)
-
-    def forward(self, input, hidden):
-        print(input.size())
-        print(input)
-        embedded = self.embedding(input).view(1, 1, -1)
-        output = embedded
-        print('output')
-        print(output.size())
-        print(output)
-        print('hidden')
-        print(hidden.size())
-        print(hidden)
-        output, hidden = self.gru(output, hidden)
         return output, hidden
 
-    def initHidden(self):
-        return torch.zeros(1, 1, self.hidden_size, device=DEVICE)
 
 def test(encoder=EncoderLSTM()):
-    input_var, _ = prep.test(path_dev,verbose=True)
-    print('input_var')
-    print(input_var.size())
+    input_var, _ = prep.test(path_dev,verbose=False)
     # encoder = EncoderLSTM()
     encoder.to(DEVICE)
     input_length = len(input_var)
     encoder_hidden = encoder.initHidden()        
     h = Variable(torch.zeros(input_length, encoder.hidden_size*2))        
     for ei in range(input_length):
-        encoder_hidden = encoder(input_var[ei],encoder_hidden)
-        h[ei] = torch.cat((encoder_hidden[0][0],encoder_hidden[1][0]),1)
+        encoder_output, encoder_hidden = encoder(input_var[ei],encoder_hidden)
+        h[ei] = torch.cat((encoder_hidden[0][0][0],encoder_hidden[1][0][0]),0)
     print(input_var.size())
     print(h.size())
     return h
 
 
 if __name__ == "__main__": 
-    test(EncoderRRN())
+    test()

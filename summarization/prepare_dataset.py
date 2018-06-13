@@ -13,7 +13,7 @@ import save_as_pickle
 from helper_functions import *
 
 
-def createVocabObj(mode=None):
+def createVocabObj(mode='prep'):
 	if mode == 'prep':
 		vocab = Vocab() 
 	else:
