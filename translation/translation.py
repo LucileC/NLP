@@ -122,15 +122,8 @@ class EncoderRNN(nn.Module):
         self.gru = nn.GRU(hidden_size, hidden_size)
 
     def forward(self, input, hidden):
-        print('Encoder forward input')
-        print(input.size())
         embedded = self.embedding(input).view(1, 1, -1)
         output = embedded
-        print('Encoder forward output')
-        print(output.size())
-        print('Encoder forward hidden')
-        print(hidden.size())
-        # print(output)
         output, hidden = self.gru(output, hidden)
         return output, hidden
 
@@ -213,12 +206,7 @@ teacher_forcing_ratio = 0.5
 
 
 def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length=MAX_LENGTH):
-    print('train')
-    print('size input_tensor')
-    print(input_tensor.size())
-    print('size target_tensor')
-    print(target_tensor.size())
-
+    
     encoder_hidden = encoder.initHidden()
 
     encoder_optimizer.zero_grad()
