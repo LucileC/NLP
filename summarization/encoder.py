@@ -51,4 +51,6 @@ def test(input_target_pair):
 
 if __name__ == "__main__": 
     input_target_pair = prep.test(path_dev,verbose=False)
+    print(input_target_pair[0])
+    print(input_target_pair[1])
     test(input_target_pair)

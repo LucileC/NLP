@@ -25,20 +25,19 @@ from helper_functions import *
 
 def prepare_dataset(vocab):
 
-	dataset_train = prep.loadDataset(path_train)
+	# dataset_train = prep.loadDataset(path_train)
+	# dataset_train_tokenized = prep.tokenizeDataset(dataset_train,vocab,buildvocab=True)
+	dataset_train = prep.loadDataset(path_dev)
 	dataset_train_tokenized = prep.tokenizeDataset(dataset_train,vocab,buildvocab=True)
-	# save_as_pickle.save_obj(dataset_train_tokenized,'dataset_train_tokenized') 
 
-	dataset_dev = prep.loadDataset(path_dev)
-	dataset_dev_tokenized = prep.tokenizeDataset(dataset_dev,vocab)
-	# save_as_pickle.save_obj(dataset_dev_tokenized,'dataset_dev_tokenized') 
+	# dataset_dev = prep.loadDataset(path_dev)
+	dataset_dev = dataset_train
+	# dataset_dev_tokenized = prep.tokenizeDataset(dataset_dev,vocab)
+	dataset_dev_tokenized = dataset_train_tokenized
 
 	dataset_eval = prep.loadDataset(path_eval,vocab)
-	# dataset_eval_tokenized = prep.tokenizeDataset(dataset_eval)
-	dataset_eval_tokenized = None
-	# save_as_pickle.save_obj(dataset_eval_tokenized,'dataset_eval_tokenized') 
 
-	# save_as_pickle.save_obj(prep.vocab,'vocab')
+	dataset_eval_tokenized = None
 
 	return dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized
 
@@ -72,8 +71,8 @@ def trainingStep(input_var, target_var, encoder, decoder, encoder_optimizer, dec
 	encoder_hidden = encoder.initHidden()        
 	h = Variable(torch.zeros(input_length, encoder.hidden_size*2))        
 	for ei in range(input_length):
-		encoder_hidden = encoder(input_var[ei],encoder_hidden)
-		h[ei] = torch.cat((encoder_hidden[0][0],encoder_hidden[1][0]),1)
+		encoder_output, encoder_hidden = encoder(input_var[ei],encoder_hidden)
+		h[ei] = torch.cat((encoder_hidden[0][0][0],encoder_hidden[1][0][0]),0)
 
 	target_length = len(target_var)    
 	if debug:
@@ -98,11 +97,19 @@ def trainingStep(input_var, target_var, encoder, decoder, encoder_optimizer, dec
 
 
 def testTrainingStep():
-	input_var, target_var = prep.test()
-	encoder_opt = optim.SGD(encoder.parameters(), lr=0.01)
-	decoder_opt = optim.SGD(encoder.parameters(), lr=0.01)
+	input_var, target_var = prep.test(path_dev)
+	print('input_var size')
+	print(input_var.size())
+	print(input_var)
+	print('target_var size')
+	print(target_var.size())
+	print(target_var)
 	encoder = EncoderLSTM()
 	decoder = AttnDecoderLSTM()
+	encoder.to(DEVICE)
+	decoder.to(DEVICE)
+	encoder_opt = optim.SGD(encoder.parameters(), lr=0.01)
+	decoder_opt = optim.SGD(encoder.parameters(), lr=0.01)
 	loss = trainingStep(input_var,target_var,encoder,decoder,encoder_opt,decoder_opt,nn.NLLLoss(),debug=True)
 	print(loss)
 
@@ -135,10 +142,10 @@ def trainIters(dataset_tokenized, encoder, decoder, n_iters, print_every=1000, p
 		example = training[iter]
 		input_variable = [item for sublist in example['passages'] for item in sublist]
 		input_variable = list(input_variable[:400])
-		input_variable = prep.variableFromSentence(input_variable,vocab)
+		input_variable = prep.tensorFromSentence(input_variable,vocab)
 		input_variable = input_variable.to(DEVICE)
 		target_variable = example['wellFormedAnswers'][0]
-		target_variable = prep.variableFromSentence(target_variable,vocab)
+		target_variable = prep.tensorFromSentence(target_variable,vocab)
 		target_variable = target_variable.to(DEVICE)
 
 		loss = trainingStep(input_variable, target_variable, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion)
@@ -182,8 +189,9 @@ if __name__ == "__main__":
 	vocab = prep.createVocabObj(args.mode)
 
 	if args.mode == 'train':
-		dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized = prepare_dataset(vocab)
-		train(dataset_train_tokenized)
+		# dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized = prepare_dataset(vocab)
+		# train(dataset_train_tokenized) 
+		testTrainingStep()
 	elif args.mode == 'prep':
 		prepare_dataset()
 	else:

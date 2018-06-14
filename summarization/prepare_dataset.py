@@ -2,6 +2,7 @@ import json
 import random
 import re
 import math
+import sys
 import torch
 from torch.autograd import Variable
 
@@ -71,7 +72,8 @@ def tokenizeDataset(dataset,vocab,buildvocab=False):
 			if buildvocab:
 				vocab.addSentence(t)
 		if i>0 and i%print_every == 0:
-			print('... %d%%\r'%(i/print_every*10))
+			sys.stdout.write('... %d%%\r'%(i/print_every*10))
+			sys.stdout.flush()
 		tokenized_dataset.append(tokenized_data)
 
 	print('Number of different words: %d'%len(vocab.word2count))
