@@ -23,17 +23,20 @@ from helper_functions import *
 ##		Prepare Dataset															  ##
 ####################################################################################
 
-def prepare_dataset(vocab):
+def prepare_dataset(vocab,rapid_test = RAPID_TEST):
 
-	# dataset_train = prep.loadDataset(path_train)
-	# dataset_train_tokenized = prep.tokenizeDataset(dataset_train,vocab,buildvocab=True)
-	dataset_train = prep.loadDataset(path_dev)
-	dataset_train_tokenized = prep.tokenizeDataset(dataset_train,vocab,buildvocab=True)
+	if rapid_test:
+		dataset_train = prep.loadDataset(path_dev)
+		dataset_train_tokenized = prep.tokenizeDataset(dataset_train,vocab,buildvocab=True)
 
-	# dataset_dev = prep.loadDataset(path_dev)
-	dataset_dev = dataset_train
-	# dataset_dev_tokenized = prep.tokenizeDataset(dataset_dev,vocab)
-	dataset_dev_tokenized = dataset_train_tokenized
+		dataset_dev = dataset_train
+		dataset_dev_tokenized = dataset_train_tokenized
+
+	else:
+		dataset_train = prep.loadDataset(path_train)
+		dataset_train_tokenized = prep.tokenizeDataset(dataset_train,vocab,buildvocab=True)
+		dataset_dev = prep.loadDataset(path_dev)
+		dataset_dev_tokenized = prep.tokenizeDataset(dataset_dev,vocab)
 
 	dataset_eval = prep.loadDataset(path_eval)
 

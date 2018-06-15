@@ -14,8 +14,10 @@ path_eval = "data/msmarco_2wellformed/evalpublicwellformed.json"
 
 SOS_token = 0
 EOS_token = 1
-UNK = 3
+UNK = 2
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # Assume that we are on a CUDA machine, then this should print a CUDA device:
 print(DEVICE)
+
+RAPID_TEST = False

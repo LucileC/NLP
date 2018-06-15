@@ -2,7 +2,7 @@ from constants import *
 
 class Vocab:
     def __init__(self,voc_size=VOC_SIZE):
-        self.word2index = {}
+        self.word2index = {"SOS": 0, "EOS": 1, "UNK": 2}
         self.word2count = {}
         self.index2word = {0: "SOS", 1: "EOS", 2: "UNK"}
         self.n_words = 3
@@ -11,7 +11,7 @@ class Vocab:
         self.voc_size = voc_size
 
     def init_dicts(self):
-        self.word2index = {}
+        self.word2index = {"SOS": 0, "EOS": 1, "UNK": 2}
         # self.word2count = {}
         self.index2word = {0: "SOS", 1: "EOS", 2: "UNK"}
         # self.word2count["UNK"] = 0

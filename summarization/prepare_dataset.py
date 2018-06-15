@@ -15,11 +15,12 @@ from helper_functions import *
 
 
 def createVocabObj(mode='prep'):
-	if mode == 'prep':
-		vocab = Vocab() 
-	else:
-		vocab = save_as_pickle.load_obj('vocab')
+	# if mode == 'prep':
+	vocab = Vocab() 
 	return vocab
+	# else:
+	# 	vocab = save_as_pickle.load_obj('vocab')
+	# return vocab
 
 def loadDataset(path,limit=100000000000):
 	print("Loading dataset from %s..."%path)
