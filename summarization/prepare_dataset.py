@@ -84,7 +84,7 @@ def tokenizeDataset(dataset,vocab,buildvocab=False):
 	return tokenized_dataset
 
 def indexesFromSentence(sentence,vocab): # sentence is a list of tokens
-	return [vocab.word2index[word] for word in sentence]
+	return [[vocab.getIndex(word)] for word in sentence]
 
 # def variableFromSentence(sentence,vocab):
 # 	indexes = indexesFromSentence(sentence,vocab)
@@ -93,7 +93,9 @@ def indexesFromSentence(sentence,vocab): # sentence is a list of tokens
 
 def tensorFromSentence(sentence,vocab):
 	indexes = indexesFromSentence(sentence,vocab)
-	indexes.append(EOS_token)
+	# print(indexes)
+	indexes.append([EOS_token])
+	# return torch.LongTensor(indexes, device=DEVICE).cuda()
 	return torch.tensor(indexes, dtype=torch.long, device=DEVICE).view(-1,1)
 
 # def variablesFromPair(pair,vocab):
@@ -121,6 +123,7 @@ def test(path,verbose=False):
 	dataset_dev_tokenized = tokenizeDataset(dataset_dev,vocab,buildvocab=True)
 
 	example = random.choice(dataset_dev_tokenized)
+	print(example)
 	# print(example['passages'])
 	input_var = [item for sublist in example['passages'] for item in sublist]
 	input_var = list(input_var[:400])
@@ -137,6 +140,6 @@ def test(path,verbose=False):
 	return input_var, target_var
 
 if __name__ == "__main__": 
-	path = path_train
+	path = path_dev
 	# testTokenizeVsLoadingTime(loadDataset(path),'dataset_train_tokenized',createVocabObj())
 	test(path,True)

@@ -5,10 +5,17 @@ class Vocab:
         self.word2index = {}
         self.word2count = {}
         self.index2word = {0: "SOS", 1: "EOS", 2: "UNK"}
+        self.n_words = 3
         self.wordsOrderedByFreq = list()
         self.word2count["UNK"] = 0
-        self.n_words = 3
         self.voc_size = voc_size
+
+    def init_dicts(self):
+        self.word2index = {}
+        # self.word2count = {}
+        self.index2word = {0: "SOS", 1: "EOS", 2: "UNK"}
+        # self.word2count["UNK"] = 0
+        self.n_words = 3
         
     def addSentence(self, sentence):
         for word in sentence:
@@ -29,16 +36,28 @@ class Vocab:
         # get frequency of last word
         freq = self.word2count[last_word]
         print("Last word in vocabulary will be %s with a frequency of appearance of %d"%(last_word,freq))
+        ## reasign index (first indexes for most frequent words) for the first VOC_SIZE words
+        self.init_dicts()
         for i in range(self.voc_size):
             word = self.wordsOrderedByFreq[i]
             self.word2index[word] = self.n_words
             self.index2word[self.n_words] = word
             self.n_words += 1
+        ## assignt the other words to UNK
         for j in range(self.voc_size,len(self.wordsOrderedByFreq)):
             self.word2index[word] = 2
             self.n_words += 1
             self.word2count['UNK'] += 1
+        self.printFirstWords()
+
+    def printFirstWords(self):
         print("Vocabulary (size %d) is built. The firsts words are:"%self.voc_size)
         for k in range(2,7):
             word = self.index2word[k]
             print("%s (appeared %d times)"%(word,self.word2count[word]))
+
+    def getIndex(self,word):
+        if word in self.word2index.keys():
+            return self.word2index[word]
+        else :
+            return self.word2index['UNK']

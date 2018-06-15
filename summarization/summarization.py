@@ -35,11 +35,11 @@ def prepare_dataset(vocab):
 	# dataset_dev_tokenized = prep.tokenizeDataset(dataset_dev,vocab)
 	dataset_dev_tokenized = dataset_train_tokenized
 
-	dataset_eval = prep.loadDataset(path_eval,vocab)
+	dataset_eval = prep.loadDataset(path_eval)
 
 	dataset_eval_tokenized = None
 
-	return dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized
+	return dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized, vocab
 
 ####################################################################################
 ##		Load Dataset															  ##
@@ -68,10 +68,12 @@ def trainingStep(input_var, target_var, encoder, decoder, encoder_optimizer, dec
 		print('Starting encoding')
 
 	input_length = len(input_var)
-	encoder_hidden = encoder.initHidden()        
+	encoder_hidden = encoder.initHidden()      
+	# print(input_var)  
 	h = Variable(torch.zeros(input_length, encoder.hidden_size*2))        
 	for ei in range(input_length):
 		encoder_output, encoder_hidden = encoder(input_var[ei],encoder_hidden)
+		# print(encoder_hidden[0][0][0],encoder_hidden[1][0][0])
 		h[ei] = torch.cat((encoder_hidden[0][0][0],encoder_hidden[1][0][0]),0)
 
 	target_length = len(target_var)    
@@ -93,17 +95,11 @@ def trainingStep(input_var, target_var, encoder, decoder, encoder_optimizer, dec
 	encoder_optimizer.step()
 	decoder_optimizer.step()
 
-	return loss.data[0] / target_length
+	return loss.item() / target_length
 
 
 def testTrainingStep():
 	input_var, target_var = prep.test(path_dev)
-	print('input_var size')
-	print(input_var.size())
-	print(input_var)
-	print('target_var size')
-	print(target_var.size())
-	print(target_var)
 	encoder = EncoderLSTM()
 	decoder = AttnDecoderLSTM()
 	encoder.to(DEVICE)
@@ -140,15 +136,17 @@ def trainIters(dataset_tokenized, encoder, decoder, n_iters, print_every=1000, p
 	for iter in range(1, n_iters + 1):
 		# print(iter)
 		example = training[iter]
-		input_variable = [item for sublist in example['passages'] for item in sublist]
-		input_variable = list(input_variable[:400])
-		input_variable = prep.tensorFromSentence(input_variable,vocab)
-		input_variable = input_variable.to(DEVICE)
-		target_variable = example['wellFormedAnswers'][0]
-		target_variable = prep.tensorFromSentence(target_variable,vocab)
-		target_variable = target_variable.to(DEVICE)
+		# print(example)
+		# vocab.printFirstWords()
+		input_var = [item for sublist in example['passages'] for item in sublist]
+		input_var = list(input_var[:400])
+		# print(input_var)
+		input_var = prep.tensorFromSentence(input_var,vocab)
+		# input_var = input_var.to(DEVICE)
+		target_var = example['wellFormedAnswers'][0]
+		target_var = prep.tensorFromSentence(target_var,vocab)
 
-		loss = trainingStep(input_variable, target_variable, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion)
+		loss = trainingStep(input_var, target_var, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion)
 		print_loss_total += loss
 		plot_loss_total += loss
 
@@ -189,9 +187,9 @@ if __name__ == "__main__":
 	vocab = prep.createVocabObj(args.mode)
 
 	if args.mode == 'train':
-		# dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized = prepare_dataset(vocab)
-		# train(dataset_train_tokenized) 
-		testTrainingStep()
+		dataset_train, dataset_dev, dataset_eval, dataset_train_tokenized, dataset_dev_tokenized, dataset_eval_tokenized, vocab = prepare_dataset(vocab)
+		train(dataset_train_tokenized) 
+		# testTrainingStep()
 	elif args.mode == 'prep':
 		prepare_dataset()
 	else:

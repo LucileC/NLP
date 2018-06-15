@@ -21,15 +21,18 @@ class AttnDecoderLSTM(nn.Module):
         self.embedding = nn.Embedding(voc_size, embedding_size)
         self.decoder_bilstm = nn.LSTM(self.embedding_size,self.hidden_size, num_layers=1, bidirectional = True)
         self.attn_Ws = nn.Linear(hidden_size *2, hidden_size) #?
+        self.attn_Ws = self.attn_Ws.cuda()
         self.attn_Wh = nn.Linear(hidden_size *2, hidden_size) #?
+        # self. attn_Wh =  self.attn_Wh.cuda()
+        # self.attn_Wh.to(DEVICE)
         self.attn_v = nn.Linear(hidden_size, 1)
         self.lin_V1 = nn.Linear(hidden_size*4, hidden_size)
         self.lin_V2 = nn.Linear(hidden_size, output_size)
         self.test = nn.Linear(hidden_size*2,output_size)
         
     def initHidden(self):
-        return (Variable(torch.zeros(2, 1, self.hidden_size)), # 2 because bidirectional
-                Variable(torch.zeros(2, 1, self.hidden_size)))
+        return (Variable(torch.zeros(2, 1, self.hidden_size, device=DEVICE)), # 2 because bidirectional
+                Variable(torch.zeros(2, 1, self.hidden_size, device=DEVICE)))
         
     def forward_rec(self,input,hidden):
         emb = self.embedding(input).view(1,1,-1)
@@ -47,6 +50,10 @@ class AttnDecoderLSTM(nn.Module):
         outputs = torch.zeros(target_length, self.hidden_size*2)
         s = torch.zeros(target_length,self.hidden_size*2)
         input = torch.LongTensor([SOS_token])
+        # input = torch.zeros(1,device=DEVICE)
+        # input.to(DEVICE)
+        input = input.cuda()
+        # input = torch.full((1,), 0, device=DEVICE)
 
         hidden = self.initHidden()
         
@@ -54,19 +61,21 @@ class AttnDecoderLSTM(nn.Module):
             output, hidden = self.forward_rec(input, hidden)
             outputs[di] = output[0]
             s[di] = torch.cat((hidden[0][0],hidden[1][0]),1)
-            input = target_var[di].cpu()
+            input = target_var[di]#.cpu()
         
         # attention distribution
+        h = h.cuda()
+        s = s.cuda()
         Wh = self.attn_Wh(h) # dim: # of words in input , 256
         Ws = self.attn_Ws(s) # dim: # of words in target , 256
-        Wh_Ws_d = Variable(torch.zeros(target_length,input_length,256)) # dim: # of words in target, # of words in input , 256 
+        Wh_Ws_d = Variable(torch.zeros(target_length,input_length,256, device=DEVICE)) # dim: # of words in target, # of words in input , 256 
         for i in range(target_length):
             Wh_Ws_d[i] = torch.add(Wh,Ws[0])
         Wh_Ws_d = F.tanh(Wh_Ws_d) # dim: # of words in target, # of words in input , 256 
         e = self.attn_v(Wh_Ws_d) # dim: # of words in target, # of words in input , 1 
         e = e.permute(0,2,1) # dim: # of words in target, 1, # of words in input 
         a = F.softmax(e, dim=2) # dim: # of words in target, 1, # of words in input 
-        h_extended = torch.add(Variable(torch.zeros(target_length,input_length,self.hidden_size*2)),h)
+        h_extended = torch.add(Variable(torch.zeros(target_length,input_length,self.hidden_size*2, device=DEVICE)),h)
         hstar = torch.bmm(a,h_extended) # dim: #of target words, 1, 512
         # vocabulary distribution
         v1 = torch.cat((s.unsqueeze(1),hstar),dim=2) # dim: #of target words, 1, 1024
@@ -84,11 +93,12 @@ def test(input_target_pair):
     input_var, target_var = input_target_pair
     h = encoder.test(input_target_pair)
     decoder2 = AttnDecoderLSTM()
+    decoder2.to(DEVICE)
     loss = 0
     Pvocab, outputs = decoder2(target_var,h)
     criterion = nn.NLLLoss()
     for i in range(len(outputs)):
-        loss += criterion(Pvocab[i],target_var[i].cpu())
+        loss += criterion(Pvocab[i],target_var[i])
     print (loss/len(target_var))
 
 
