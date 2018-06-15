@@ -17,7 +17,10 @@ EOS_token = 1
 UNK = 2
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+CUDA = True if DEVICE == 'cuda:0' else False
+
 # Assume that we are on a CUDA machine, then this should print a CUDA device:
 print(DEVICE)
 
-RAPID_TEST = False
+RAPID_TEST = True

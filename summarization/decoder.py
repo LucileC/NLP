@@ -21,7 +21,8 @@ class AttnDecoderLSTM(nn.Module):
         self.embedding = nn.Embedding(voc_size, embedding_size)
         self.decoder_bilstm = nn.LSTM(self.embedding_size,self.hidden_size, num_layers=1, bidirectional = True)
         self.attn_Ws = nn.Linear(hidden_size *2, hidden_size) #?
-        self.attn_Ws = self.attn_Ws.cuda()
+        if CUDA:
+            self.attn_Ws = self.attn_Ws.cuda()
         self.attn_Wh = nn.Linear(hidden_size *2, hidden_size) #?
         # self. attn_Wh =  self.attn_Wh.cuda()
         # self.attn_Wh.to(DEVICE)
@@ -43,16 +44,12 @@ class AttnDecoderLSTM(nn.Module):
     def forward(self, target_var, h):
         input_length = h.size()[0]
         target_length = len(target_var)
-        # hidden = self.initHidden()        
-        # outputs = Variable(torch.zeros(target_length, self.hidden_size*2))  
-        # s = Variable(torch.zeros(target_length,self.hidden_size*2))
-        # input = Variable(torch.LongTensor([[SOS_token]]))    
+
         outputs = torch.zeros(target_length, self.hidden_size*2)
         s = torch.zeros(target_length,self.hidden_size*2)
         input = torch.LongTensor([SOS_token])
-        # input = torch.zeros(1,device=DEVICE)
-        # input.to(DEVICE)
-        input = input.cuda()
+        if CUDA:
+            input = input.cuda()
         # input = torch.full((1,), 0, device=DEVICE)
 
         hidden = self.initHidden()
@@ -64,8 +61,9 @@ class AttnDecoderLSTM(nn.Module):
             input = target_var[di]#.cpu()
         
         # attention distribution
-        h = h.cuda()
-        s = s.cuda()
+        if CUDA:
+            h = h.cuda()
+            s = s.cuda()
         Wh = self.attn_Wh(h) # dim: # of words in input , 256
         Ws = self.attn_Ws(s) # dim: # of words in target , 256
         Wh_Ws_d = Variable(torch.zeros(target_length,input_length,256, device=DEVICE)) # dim: # of words in target, # of words in input , 256 
