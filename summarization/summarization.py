@@ -13,7 +13,7 @@ import argparse
 
 import prepare_dataset as prep
 from encoder import EncoderLSTM
-from decoder import AttnDecoderLSTM
+from decoder2 import AttnDecoderLSTM2
 from constants import *
 import save_as_pickle
 from helper_functions import *
@@ -83,10 +83,16 @@ def trainingStep(input_var, target_var, encoder, decoder, encoder_optimizer, dec
 	if debug:
 		print('Starting decoding, target_length = %d'%target_length)
 
-	Pvocab, outputs = decoder(target_var,h)
+	# Pvocab, outputs = decoder(target_var,h)
+	# loss = 0
+	# for i in range(target_length):
+	# 	loss += criterion(Pvocab[i],target_var[i])     
+
 	loss = 0
-	for i in range(target_length):
-		loss += criterion(Pvocab[i],target_var[i])        
+	decoder_hidden = decoder.initHidden()         
+	for ei in range(len(target_var)):
+		decoder_output, decoder_hidden = decoder(target_var[ei],decoder_hidden, h)
+		loss += criterion(decoder_output,target_var[ei])   
 
 	if debug:
 		start = time.time()
@@ -104,7 +110,7 @@ def trainingStep(input_var, target_var, encoder, decoder, encoder_optimizer, dec
 def testTrainingStep():
 	input_var, target_var = prep.test(path_dev)
 	encoder = EncoderLSTM()
-	decoder = AttnDecoderLSTM()
+	decoder = AttnDecoderLSTM2()
 	encoder.to(DEVICE)
 	decoder.to(DEVICE)
 	encoder_opt = optim.SGD(encoder.parameters(), lr=0.01)
@@ -172,7 +178,7 @@ def trainIters(dataset_tokenized, encoder, decoder, n_iters, print_every=1000, p
 def train(dataset):
 	encoder1 = EncoderLSTM()
 	encoder1.to(DEVICE)
-	attn_decoder1 = AttnDecoderLSTM()
+	attn_decoder1 = AttnDecoderLSTM2()
 	attn_decoder1.to(DEVICE)
 	all_losses = trainIters(dataset, encoder1, attn_decoder1, 7500, learning_rate=0.001, print_every=50, plot_every = 1)
 

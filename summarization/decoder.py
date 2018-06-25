@@ -71,7 +71,7 @@ class AttnDecoderLSTM(nn.Module):
         a = F.softmax(e, dim=2) # dim: # of words in target, 1, # of words in input 
         h_extended = torch.add(Variable(torch.zeros(target_length,input_length,self.hidden_size*2, device=DEVICE)),h)
         hstar = torch.bmm(a,h_extended) # dim: #of target words, 1, 512
-        print(hstar)
+        # print(hstar)
         # vocabulary distribution
         v1 = torch.cat((s.unsqueeze(1),hstar),dim=2) # dim: #of target words, 1, 1024
         v1 = self.lin_V1(v1) # dim: #of target words, 1, 256
