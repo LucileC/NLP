@@ -71,14 +71,15 @@ class AttnDecoderLSTM(nn.Module):
         a = F.softmax(e, dim=2) # dim: # of words in target, 1, # of words in input 
         h_extended = torch.add(Variable(torch.zeros(target_length,input_length,self.hidden_size*2, device=DEVICE)),h)
         hstar = torch.bmm(a,h_extended) # dim: #of target words, 1, 512
+        print(hstar)
         # vocabulary distribution
         v1 = torch.cat((s.unsqueeze(1),hstar),dim=2) # dim: #of target words, 1, 1024
         v1 = self.lin_V1(v1) # dim: #of target words, 1, 256
         v2 = self.lin_V2(v1) # dim: #of target words, 1, vocabulary size
-        Pvocab = F.softmax(v2,dim=2) # dim: #of target words, 1, vocabulary size
-        x = self.test(s).unsqueeze(1)
+        # Pvocab = F.softmax(v2,dim=2) # dim: #of target words, 1, vocabulary size
+        # x = self.test(s).unsqueeze(1)
 #         print(s.size())
-        Pvocab = F.log_softmax(x,2)
+        Pvocab = F.log_softmax(v2,2)
         
         return Pvocab, outputs    
       
@@ -93,6 +94,7 @@ def test(input_target_pair):
     criterion = nn.NLLLoss()
     for i in range(len(outputs)):
         loss += criterion(Pvocab[i],target_var[i])
+    print(Pvocab[len(outputs)-1])
     print (loss/len(target_var))
 
 
