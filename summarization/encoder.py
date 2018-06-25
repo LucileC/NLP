@@ -46,7 +46,7 @@ def test(input_target_pair):
     encoder_hidden = encoder.initHidden()        
     h = Variable(torch.zeros(input_length, encoder.hidden_size*2))        
     for ei in range(input_length):
-        print(input_var[ei])
+        # print(input_var[ei]) 
         encoder_output, encoder_hidden = encoder(input_var[ei],encoder_hidden)
         h[ei] = torch.cat((encoder_hidden[0][0][0],encoder_hidden[1][0][0]),0)
     return h
@@ -54,6 +54,6 @@ def test(input_target_pair):
 
 if __name__ == "__main__": 
     input_target_pair = prep.test(path_dev,verbose=False)
-    print(input_target_pair[0])
-    print(input_target_pair[1])
+    # print(input_target_pair[0])
+    # print(input_target_pair[1])
     test(input_target_pair)

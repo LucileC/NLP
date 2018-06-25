@@ -21,8 +21,8 @@ class AttnDecoderLSTM(nn.Module):
         self.embedding = nn.Embedding(voc_size, embedding_size)
         self.decoder_bilstm = nn.LSTM(self.embedding_size,self.hidden_size, num_layers=1, bidirectional = True)
         self.attn_Ws = nn.Linear(hidden_size *2, hidden_size) #?
-        if CUDA:
-            self.attn_Ws = self.attn_Ws.cuda()
+        # if CUDA:
+        #     self.attn_Ws = self.attn_Ws.cuda()
         self.attn_Wh = nn.Linear(hidden_size *2, hidden_size) #?
         # self. attn_Wh =  self.attn_Wh.cuda()
         # self.attn_Wh.to(DEVICE)

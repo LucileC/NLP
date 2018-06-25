@@ -124,7 +124,7 @@ def test(path,verbose=False):
 	dataset_dev_tokenized = tokenizeDataset(dataset_dev,vocab,buildvocab=True)
 
 	example = random.choice(dataset_dev_tokenized)
-	print(example)
+	# print(example)
 	# print(example['passages'])
 	input_var = [item for sublist in example['passages'] for item in sublist]
 	input_var = list(input_var[:400])
