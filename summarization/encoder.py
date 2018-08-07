@@ -10,13 +10,13 @@ from constants import *
 
 class EncoderLSTM(nn.Module):
 
-    def __init__(self,embedding_size=EMBEDDING_SIZE,hidden_size=HIDDEN_SIZE,voc_size=VOC_SIZE):
+    def __init__(self,embedding_size=EMBEDDING_SIZE,hidden_size=HIDDEN_SIZE,input_size=VOC_SIZE):
         super(EncoderLSTM,self).__init__()
         self.embedding_size = embedding_size
         self.hidden_size = hidden_size
-        self.voc_size = voc_size
+        self.input_size = input_size
 
-        self.embedding = nn.Embedding(voc_size, embedding_size)
+        self.embedding = nn.Embedding(input_size, embedding_size)
         self.bilstm = nn.LSTM(embedding_size, hidden_size, num_layers =1, bidirectional=True)
 
     def initHidden(self):
